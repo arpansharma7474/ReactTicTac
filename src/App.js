@@ -1,7 +1,4 @@
 import React from 'react'
-
-const log = console.log
-
 class Game extends React.Component {
 
     state = {
@@ -33,9 +30,50 @@ class Game extends React.Component {
                     style={{ width: 200, height: 20 }}
                 ></input>
                 <button style={{ margin: 10 }}>Submit</button>
+
+                <div>
+                    {this.makeSquares()}
+                </div>
             </div>
         );
     }
+
+    makeSquares = () => {
+
+        let finalArray = []
+        let rowArray = []
+        for (let i = 0; i < 9; i++) {
+            rowArray.push(
+                <button
+                    style={{
+                        height: 50,
+                        width: 50,
+                        margin: 10
+                    }}
+                    className="square">
+                    {i}
+                </button>)
+            if (rowArray.length === 3) {
+                finalArray.push(<div style={{
+                    display: 'flex',
+                    flexDirection: "row",
+                    alignItems: 'center',
+                }}>
+                    {rowArray}
+                </div>)
+                rowArray = []
+            }
+        }
+        return (
+            <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+            }}>
+                {finalArray}
+            </div>)
+    }
+
 }
 
 export default Game
