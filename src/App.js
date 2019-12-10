@@ -111,6 +111,9 @@ class Game extends React.Component {
             const [a, b, c] = lines[i];
             if (squares[a] != " " && squares[a] === squares[b] && squares[a] === squares[c]) {
                 alert(this.state.currentX ? "X has won" : "O has won")
+                this.setState({
+                    array: new Array(9).fill(" "),
+                })
             }
         }
     }
