@@ -1,5 +1,16 @@
 import React from 'react'
+import Peer from 'peerjs';
+
+const log = console.log
 class Game extends React.Component {
+
+    componentDidMount() {
+        var peer = new Peer({ key: 'lwjd5qra8257b9' });
+        peer.on('open', id => {
+            log('My peer ID is: ' + id);
+        });
+
+    }
 
     state = {
         array: new Array(9).fill(" "),
