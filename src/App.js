@@ -11,13 +11,12 @@ class Game extends React.Component {
         });
 
     }
-
     state = {
         array: new Array(9).fill(" "),
         currentX: true,
-        email: ""
+        email: "",
     }
-
+ 
     render() {
         return (
             <div
@@ -118,15 +117,26 @@ class Game extends React.Component {
             [0, 4, 8],
             [2, 4, 6],
         ];
+
         for (let i = 0; i < lines.length; i++) {
             const [a, b, c] = lines[i];
             if (squares[a] != " " && squares[a] === squares[b] && squares[a] === squares[c]) {
                 alert(this.state.currentX ? "X has won" : "O has won")
+             
                 this.setState({
                     array: new Array(9).fill(" "),
                 })
+                break
+            }
+            if (squares.indexOf(" ") < 0) {
+                alert("Game Over")
+                this.setState({
+                    array: new Array(9).fill(" "),
+                })
+                break
             }
         }
+        
     }
 
 }
