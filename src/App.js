@@ -4,6 +4,9 @@ import Peer from 'peerjs';
 const log = console.log
 class Game extends React.Component {
 
+    conn = undefined
+    currentTurn = "X"
+
     componentDidMount() {
         this.peer = new Peer();
         this.peer.on('open', id => {
@@ -13,16 +16,30 @@ class Game extends React.Component {
         });
 
         this.peer.on('connection', conn => {
-            this.handleConn(conn)
+            this.conn = conn
+            this.setState({
+                gameStarted: true,
+                mySign: "O"
+            }, () => {
+                this.handleConn()
+            })
+
         });
 
     }
     state = {
         array: new Array(9).fill(" "),
-        currentX: true,
+        mySign: undefined,
         my_id: "",
         gameStarted: false,
         opponnent_id: ""
+    }
+
+    getTurnName = () => {
+        if (this.currentTurn === this.state.mySign)
+            return "My turn"
+        else
+            return "Opponents Turn"
     }
 
     render() {
@@ -37,9 +54,9 @@ class Game extends React.Component {
             >
                 <h1>Welcome Your id is : </h1>
                 <p>{this.state.my_id}</p>
-                <h2>Enter opponent id:  </h2>
-                <input
-                    type="email"
+                {this.state.gameStarted ? <h3>{this.getTurnName()}</h3> : null}
+                {!this.state.gameStarted && <h2>Enter opponent id:  </h2>}
+                {!this.state.gameStarted && <input
                     onChange={(evt) => {
                         this.setState({
                             opponnent_id: evt.target.value
@@ -48,22 +65,14 @@ class Game extends React.Component {
                     value={this.state.opponnent_id}
                     placeholder={"Opponent id"}
                     style={{ width: 200, height: 20 }}
-                ></input>
+                ></input>}
 
-                <button
+                {!this.state.gameStarted && <button
                     onClick={() => {
                         this.connectPeer()
                     }}
                     style={{ margin: 10 }}>Submit</button>
-
-                <button
-                    onClick={() => {
-                        this.setState({
-                            array: new Array(9).fill(" "),
-                        })
-                    }}
-                    style={{ margin: 10 }}>Reset</button>
-
+                }
                 <div>
                     {this.makeSquares()}
                 </div>
@@ -74,15 +83,27 @@ class Game extends React.Component {
     connectPeer = () => {
         if (this.state.opponnent_id.length == 0)
             return
-        var conn = this.peer.connect(this.state.opponnent_id);
-        this.handleConn(conn)
+        this.conn = this.peer.connect(this.state.opponnent_id);
+        this.setState({
+            gameStarted: true,
+            mySign: "X"
+        }, () => {
+            this.handleConn()
+        })
+
     }
 
-    handleConn = conn => {
-        conn.on('data', data => {
-            console.log('Received', data);
+    handleConn = _ => {
+        alert("Game Started")
+        this.conn.on('data', data => {
+            log(data, "this is data")
+            this.currentTurn = data.currentTurn
+            this.setState({
+                array: data.array,
+            }, () => {
+                this.calculateWinner()
+            })
         });
-        conn.send('Hello!');
     }
 
     makeSquares = () => {
@@ -92,15 +113,7 @@ class Game extends React.Component {
             rowArray.push(
                 <button
                     onClick={() => {
-                        const array = this.state.array
-                        if (array[i] !== " ")
-                            return
-                        array[i] = this.state.currentX ? "X" : "O"
-                        this.setState({
-                            array: array,
-                            currentX: !this.state.currentX
-                        })
-                        this.checkWinner()
+                        this.onItemClicked(i)
                     }}
                     style={{
                         height: 50,
@@ -129,6 +142,24 @@ class Game extends React.Component {
             }}>
                 {finalArray}
             </div>)
+    }
+
+    onItemClicked = (i) => {
+        if (this.currentTurn !== this.state.mySign)
+            return
+        const array = this.state.array
+        if (array[i] !== " ")
+            return
+        array[i] = this.state.mySign
+        this.currentTurn = this.state.mySign === "X" ? "O" : "X"
+        this.setState({
+            array: array,
+        })
+        this.conn.send({
+            array: array,
+            currentTurn: this.currentTurn
+        })
+        this.checkWinner()
     }
 
     checkWinner = () => {
