@@ -5,18 +5,26 @@ const log = console.log
 class Game extends React.Component {
 
     componentDidMount() {
-        var peer = new Peer({ key: 'lwjd5qra8257b9' });
-        peer.on('open', id => {
-            log('My peer ID is: ' + id);
+        this.peer = new Peer();
+        this.peer.on('open', id => {
+            this.setState({
+                my_id: id
+            })
+        });
+
+        this.peer.on('connection', conn => {
+            this.handleConn(conn)
         });
 
     }
     state = {
         array: new Array(9).fill(" "),
         currentX: true,
-        email: "",
+        my_id: "",
+        gameStarted: false,
+        opponnent_id: ""
     }
- 
+
     render() {
         return (
             <div
@@ -27,18 +35,27 @@ class Game extends React.Component {
                 }}
                 className="game"
             >
-                <h1>Welcome</h1>
-                {/* <input
+                <h1>Welcome Your id is : </h1>
+                <p>{this.state.my_id}</p>
+                <h2>Enter opponent id:  </h2>
+                <input
                     type="email"
                     onChange={(evt) => {
                         this.setState({
-                            email: evt.target.value
+                            opponnent_id: evt.target.value
                         })
                     }}
-                    value={this.state.email}
-                    placeholder={"Please enter your email"}
+                    value={this.state.opponnent_id}
+                    placeholder={"Opponent id"}
                     style={{ width: 200, height: 20 }}
-                ></input> */}
+                ></input>
+
+                <button
+                    onClick={() => {
+                        this.connectPeer()
+                    }}
+                    style={{ margin: 10 }}>Submit</button>
+
                 <button
                     onClick={() => {
                         this.setState({
@@ -52,6 +69,20 @@ class Game extends React.Component {
                 </div>
             </div>
         );
+    }
+
+    connectPeer = () => {
+        if (this.state.opponnent_id.length == 0)
+            return
+        var conn = this.peer.connect(this.state.opponnent_id);
+        this.handleConn(conn)
+    }
+
+    handleConn = conn => {
+        conn.on('data', data => {
+            console.log('Received', data);
+        });
+        conn.send('Hello!');
     }
 
     makeSquares = () => {
@@ -122,7 +153,7 @@ class Game extends React.Component {
             const [a, b, c] = lines[i];
             if (squares[a] != " " && squares[a] === squares[b] && squares[a] === squares[c]) {
                 alert(this.state.currentX ? "X has won" : "O has won")
-             
+
                 this.setState({
                     array: new Array(9).fill(" "),
                 })
@@ -136,7 +167,7 @@ class Game extends React.Component {
                 break
             }
         }
-        
+
     }
 
 }
